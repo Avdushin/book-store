@@ -264,3 +264,42 @@ button:disabled {
   background: #b00020 !important;
   border-color: #b00020 !important;
 }
+
+.admin-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.inline-card {
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.inline-card h3 {
+  margin-top: 0;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.inline-actions input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #cfcfcf;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.inline-actions button {
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #222;
+  color: white;
+}

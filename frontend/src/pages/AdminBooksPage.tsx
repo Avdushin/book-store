@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
+  adminCreateAuthor,
   adminCreateBook,
+  adminCreateCategory,
   adminDeleteBook,
   adminUpdateBookAvailability,
   adminUpdateBookStatus,
@@ -66,6 +68,10 @@ export function AdminBooksPage() {
   const [authors, setAuthors] = useState<Author[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState<CreateFormState>(initialForm);
+
+  const [newAuthor, setNewAuthor] = useState('');
+  const [newCategory, setNewCategory] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -156,6 +162,62 @@ export function AdminBooksPage() {
     }
   }
 
+  async function handleCreateAuthor() {
+    if (!newAuthor.trim()) {
+      setError('Введите имя автора');
+      return;
+    }
+
+    setError('');
+    setMessage('');
+
+    try {
+      const created = await adminCreateAuthor(newAuthor.trim());
+      setMessage(`Автор "${created.full_name}" добавлен`);
+      setNewAuthor('');
+      await loadReferences();
+
+      setForm((prev) => ({
+        ...prev,
+        author_id: String(created.id),
+      }));
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.error ?? 'Не удалось создать автора');
+      } else {
+        setError('Не удалось создать автора');
+      }
+    }
+  }
+
+  async function handleCreateCategory() {
+    if (!newCategory.trim()) {
+      setError('Введите название категории');
+      return;
+    }
+
+    setError('');
+    setMessage('');
+
+    try {
+      const created = await adminCreateCategory(newCategory.trim());
+      setMessage(`Категория "${created.name}" добавлена`);
+      setNewCategory('');
+      await loadReferences();
+
+      setForm((prev) => ({
+        ...prev,
+        category_id: String(created.id),
+      }));
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.error ?? 'Не удалось создать категорию');
+      } else {
+        setError('Не удалось создать категорию');
+      }
+    }
+  }
+
   async function handleDeleteBook(book: Book) {
     const confirmed = window.confirm(`Удалить книгу "${book.title}"?`);
     if (!confirmed) {
@@ -217,6 +279,43 @@ export function AdminBooksPage() {
   return (
     <div className='admin-page'>
       <h1>Админка книг</h1>
+
+      <section className='admin-section'>
+        <h2>Добавить автора и категорию</h2>
+
+        <div className='admin-inline-grid'>
+          <div className='inline-card'>
+            <h3>Новый автор</h3>
+            <div className='inline-actions'>
+              <input
+                placeholder='Имя автора'
+                value={newAuthor}
+                onChange={(e) => setNewAuthor(e.target.value)}
+              />
+              <button type='button' onClick={handleCreateAuthor}>
+                Добавить автора
+              </button>
+            </div>
+          </div>
+
+          <div className='inline-card'>
+            <h3>Новая категория</h3>
+            <div className='inline-actions'>
+              <input
+                placeholder='Название категории'
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+              />
+              <button type='button' onClick={handleCreateCategory}>
+                Добавить категорию
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {message && <p className='admin-message success'>{message}</p>}
+        {error && <p className='admin-message error'>{error}</p>}
+      </section>
 
       <section className='admin-section'>
         <h2>Добавить новую книгу</h2>

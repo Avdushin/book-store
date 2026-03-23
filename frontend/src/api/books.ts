@@ -103,3 +103,13 @@ export async function getCategories() {
   );
   return data;
 }
+
+export async function adminCreateAuthor(full_name: string) {
+  const { data } = await api.post<Author>('/admin/authors', { full_name });
+  return data;
+}
+
+export async function adminCreateCategory(name: string) {
+  const { data } = await api.post<Category>('/admin/categories', { name });
+  return data;
+}

@@ -69,3 +69,41 @@ func (r *ReferenceRepository) ListCategories(ctx context.Context) ([]models.Cate
 
 	return items, nil
 }
+
+func (r *ReferenceRepository) CreateAuthor(ctx context.Context, fullName string) (*models.Author, error) {
+	var item models.Author
+
+	err := r.db.QueryRowContext(
+		ctx,
+		`
+		INSERT INTO authors (full_name)
+		VALUES ($1)
+		RETURNING id, full_name
+		`,
+		fullName,
+	).Scan(&item.ID, &item.FullName)
+	if err != nil {
+		return nil, fmt.Errorf("create author: %w", err)
+	}
+
+	return &item, nil
+}
+
+func (r *ReferenceRepository) CreateCategory(ctx context.Context, name string) (*models.Category, error) {
+	var item models.Category
+
+	err := r.db.QueryRowContext(
+		ctx,
+		`
+		INSERT INTO categories (name)
+		VALUES ($1)
+		RETURNING id, name
+		`,
+		name,
+	).Scan(&item.ID, &item.Name)
+	if err != nil {
+		return nil, fmt.Errorf("create category: %w", err)
+	}
+
+	return &item, nil
+}

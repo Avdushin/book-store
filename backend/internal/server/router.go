@@ -94,6 +94,9 @@ func NewRouter(db *sql.DB, cfg *config.Config) http.Handler {
 			admin.Delete("/books/{id}", adminBookHandler.Delete)
 			admin.Patch("/books/{id}/status", adminBookHandler.UpdateStatus)
 			admin.Patch("/books/{id}/availability", adminBookHandler.UpdateAvailability)
+
+			admin.Post("/authors", referenceHandler.CreateAuthor)
+			admin.Post("/categories", referenceHandler.CreateCategory)
 		})
 	})
 
