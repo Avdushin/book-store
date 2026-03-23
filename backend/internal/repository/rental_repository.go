@@ -97,3 +97,119 @@ func (r *RentalRepository) ListByUserID(ctx context.Context, userID int64) ([]mo
 
 	return items, nil
 }
+
+func (r *RentalRepository) FindExpiringSoon(ctx context.Context) ([]models.Rental, error) {
+	query := `
+		SELECT
+			r.id,
+			r.user_id,
+			r.book_id,
+			b.title,
+			r.tariff,
+			r.start_date,
+			r.end_date,
+			r.status,
+			r.created_at
+		FROM rentals r
+		JOIN books b ON b.id = r.book_id
+		WHERE r.status = 'active'
+		  AND r.end_date > NOW()
+		  AND r.end_date <= NOW() + INTERVAL '1 day'
+		ORDER BY r.end_date ASC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("find expiring rentals: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]models.Rental, 0)
+	for rows.Next() {
+		var rental models.Rental
+		if err := rows.Scan(
+			&rental.ID,
+			&rental.UserID,
+			&rental.BookID,
+			&rental.BookTitle,
+			&rental.Tariff,
+			&rental.StartDate,
+			&rental.EndDate,
+			&rental.Status,
+			&rental.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan expiring rental: %w", err)
+		}
+		items = append(items, rental)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows expiring rentals: %w", err)
+	}
+
+	return items, nil
+}
+
+func (r *RentalRepository) FindExpiredActive(ctx context.Context) ([]models.Rental, error) {
+	query := `
+		SELECT
+			r.id,
+			r.user_id,
+			r.book_id,
+			b.title,
+			r.tariff,
+			r.start_date,
+			r.end_date,
+			r.status,
+			r.created_at
+		FROM rentals r
+		JOIN books b ON b.id = r.book_id
+		WHERE r.status = 'active'
+		  AND r.end_date <= NOW()
+		ORDER BY r.end_date ASC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("find expired rentals: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]models.Rental, 0)
+	for rows.Next() {
+		var rental models.Rental
+		if err := rows.Scan(
+			&rental.ID,
+			&rental.UserID,
+			&rental.BookID,
+			&rental.BookTitle,
+			&rental.Tariff,
+			&rental.StartDate,
+			&rental.EndDate,
+			&rental.Status,
+			&rental.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan expired rental: %w", err)
+		}
+		items = append(items, rental)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows expired rentals: %w", err)
+	}
+
+	return items, nil
+}
+
+func (r *RentalRepository) MarkExpired(ctx context.Context, rentalID int64) error {
+	_, err := r.db.ExecContext(ctx, `
+		UPDATE rentals
+		SET status = 'expired'
+		WHERE id = $1
+	`, rentalID)
+	if err != nil {
+		return fmt.Errorf("mark rental expired: %w", err)
+	}
+
+	return nil
+}

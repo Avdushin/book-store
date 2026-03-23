@@ -10,7 +10,10 @@ import (
 
 	"bookstore/backend/internal/config"
 	"bookstore/backend/internal/db"
+	"bookstore/backend/internal/repository"
+	"bookstore/backend/internal/scheduler"
 	"bookstore/backend/internal/server"
+	"bookstore/backend/internal/services"
 )
 
 func main() {
@@ -27,6 +30,13 @@ func main() {
 		log.Fatalf("connect db: %v", err)
 	}
 	defer database.Close()
+
+	rentalRepo := repository.NewRentalRepository(database)
+	notificationRepo := repository.NewNotificationRepository(database)
+	reminderService := services.NewReminderService(rentalRepo, notificationRepo)
+	reminderScheduler := scheduler.NewReminderScheduler(reminderService, 1*time.Minute)
+
+	go reminderScheduler.Start(ctx)
 
 	router := server.NewRouter(database, cfg)
 
