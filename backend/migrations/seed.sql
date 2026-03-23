@@ -43,8 +43,8 @@ INSERT INTO authors (full_name) VALUES
 -- USERS
 -- =========================================
 INSERT INTO users (full_name, email, password_hash, role) VALUES
-('Admin User', 'admin@bookstore.com', 'hashed_admin_password', 'admin'),
-('Test User', 'user@bookstore.com', 'hashed_user_password', 'user');
+('Admin User', 'admin@bookstore.com', 'admin123', 'admin'),
+('Test User', 'user@bookstore.com', 'user123', 'user');
 
 -- =========================================
 -- BOOKS

@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	AppEnv   string
-	HTTPPort string
+	AppEnv    string
+	HTTPPort  string
+	JWTSecret string
 
 	DBHost     string
 	DBPort     string
@@ -26,6 +27,7 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		AppEnv:     getEnv("APP_ENV", "development"),
 		HTTPPort:   getEnv("HTTP_PORT", "8080"),
+		JWTSecret:  getEnv("JWT_SECRET", "super-secret-dev-key"),
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnv("DB_PORT", "5432"),
 		DBUser:     getEnv("DB_USER", "bookstore_user"),

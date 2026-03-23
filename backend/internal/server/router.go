@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"net/http"
 
+	"bookstore/backend/internal/config"
 	"bookstore/backend/internal/handlers"
+	appmiddleware "bookstore/backend/internal/middleware"
 	"bookstore/backend/internal/repository"
 	"bookstore/backend/internal/services"
 
@@ -12,7 +14,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func NewRouter(db *sql.DB) http.Handler {
+func NewRouter(db *sql.DB, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -26,10 +28,24 @@ func NewRouter(db *sql.DB) http.Handler {
 	bookService := services.NewBookService(bookRepo)
 	bookHandler := handlers.NewBookHandler(bookService)
 
+	userRepo := repository.NewUserRepository(db)
+	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
+	authHandler := handlers.NewAuthHandler(authService)
+
 	r.Get("/health", healthHandler.Health)
 	r.Handle("/covers/*", http.StripPrefix("/covers/", http.FileServer(http.Dir("./static/covers"))))
 
 	r.Route("/api", func(api chi.Router) {
+		api.Route("/auth", func(auth chi.Router) {
+			auth.Post("/register", authHandler.Register)
+			auth.Post("/login", authHandler.Login)
+
+			auth.Group(func(private chi.Router) {
+				private.Use(appmiddleware.Auth(authService))
+				private.Get("/me", authHandler.Me)
+			})
+		})
+
 		api.Get("/books", bookHandler.List)
 		api.Get("/books/{id}", bookHandler.GetByID)
 	})
