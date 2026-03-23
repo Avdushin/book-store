@@ -16,7 +16,8 @@ a {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -148,4 +149,118 @@ button:disabled {
 .auth-switch a {
   color: #111;
   text-decoration: underline;
+}
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-section {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.admin-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-form input,
+.admin-form select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cfcfcf;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.admin-form button {
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #222;
+  color: white;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-row input {
+  width: auto;
+}
+
+.admin-message {
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.admin-message.success {
+  color: #1d6b2f;
+}
+
+.admin-message.error {
+  color: #b00020;
+}
+
+.admin-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.admin-book-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.admin-book-cover {
+  width: 110px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.admin-book-content {
+  flex: 1;
+}
+
+.admin-book-content h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-actions select,
+.admin-actions button {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #cfcfcf;
+  background: white;
+}
+
+.danger-button {
+  color: white;
+  background: #b00020 !important;
+  border-color: #b00020 !important;
 }
