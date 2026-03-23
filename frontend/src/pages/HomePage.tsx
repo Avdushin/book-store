@@ -3,6 +3,26 @@ import { Link } from 'react-router-dom';
 import { getBooks } from '../api/books';
 import type { Book } from '../types';
 
+function getAvailabilityText(book: Book) {
+  if (book.is_available && book.status === 'available') {
+    return 'Доступна';
+  }
+
+  if (book.status === 'sold_out') {
+    return 'Продана';
+  }
+
+  if (book.status === 'rented') {
+    return 'Арендована';
+  }
+
+  if (book.status === 'inactive') {
+    return 'Скрыта';
+  }
+
+  return 'Недоступна';
+}
+
 export function HomePage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [category, setCategory] = useState('');
@@ -19,6 +39,7 @@ export function HomePage() {
       sort_by: sortBy,
       order,
     });
+
     setBooks(data.items);
   }
 
@@ -36,16 +57,19 @@ export function HomePage() {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         />
+
         <input
           placeholder='Автор'
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
         />
+
         <input
           placeholder='Год'
           value={year}
           onChange={(e) => setYear(e.target.value)}
         />
+
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value='title'>Название</option>
           <option value='author'>Автор</option>
@@ -53,10 +77,12 @@ export function HomePage() {
           <option value='year'>Год</option>
           <option value='price'>Цена</option>
         </select>
+
         <select value={order} onChange={(e) => setOrder(e.target.value)}>
           <option value='asc'>ASC</option>
           <option value='desc'>DESC</option>
         </select>
+
         <button onClick={loadBooks}>Применить</button>
       </div>
 
@@ -68,10 +94,29 @@ export function HomePage() {
               alt={book.title}
               className='cover'
             />
+
             <h3>{book.title}</h3>
-            <p>{book.author_name}</p>
-            <p>{book.category_name}</p>
-            <p>{book.year_written}</p>
+
+            <p>
+              <strong>Автор:</strong> {book.author_name}
+            </p>
+
+            <p>
+              <strong>Категория:</strong> {book.category_name}
+            </p>
+
+            <p>
+              <strong>Год:</strong> {book.year_written}
+            </p>
+
+            <p>
+              <strong>Цена:</strong> ${book.purchase_price}
+            </p>
+
+            <p>
+              <strong>Статус:</strong> {getAvailabilityText(book)}
+            </p>
+
             <Link to={`/books/${book.id}`}>Открыть</Link>
           </article>
         ))}
