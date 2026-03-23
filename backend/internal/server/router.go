@@ -28,6 +28,9 @@ func NewRouter(db *sql.DB, cfg *config.Config) http.Handler {
 	bookService := services.NewBookService(bookRepo)
 	bookHandler := handlers.NewBookHandler(bookService)
 
+	adminBookService := services.NewAdminBookService(bookRepo)
+	adminBookHandler := handlers.NewAdminBookHandler(adminBookService)
+
 	userRepo := repository.NewUserRepository(db)
 	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -65,6 +68,17 @@ func NewRouter(db *sql.DB, cfg *config.Config) http.Handler {
 
 			private.Post("/rentals", rentalHandler.Create)
 			private.Get("/rentals/my", rentalHandler.ListMy)
+		})
+
+		api.Route("/admin", func(admin chi.Router) {
+			admin.Use(appmiddleware.Auth(authService))
+			admin.Use(appmiddleware.AdminOnly)
+
+			admin.Post("/books", adminBookHandler.Create)
+			admin.Put("/books/{id}", adminBookHandler.Update)
+			admin.Delete("/books/{id}", adminBookHandler.Delete)
+			admin.Patch("/books/{id}/status", adminBookHandler.UpdateStatus)
+			admin.Patch("/books/{id}/availability", adminBookHandler.UpdateAvailability)
 		})
 	})
 

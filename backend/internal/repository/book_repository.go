@@ -193,3 +193,176 @@ func (r *BookRepository) UpdateAvailabilityAndStatus(ctx context.Context, id int
 
 	return nil
 }
+
+func (r *BookRepository) Create(ctx context.Context, req models.CreateBookRequest) (*models.Book, error) {
+	query := `
+		INSERT INTO books (
+			title,
+			description,
+			author_id,
+			category_id,
+			year_written,
+			purchase_price,
+			rent_price_2_weeks,
+			rent_price_1_month,
+			rent_price_3_months,
+			status,
+			is_available,
+			cover_url
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		RETURNING
+			id,
+			title,
+			COALESCE(description, ''),
+			author_id,
+			category_id,
+			year_written,
+			purchase_price,
+			rent_price_2_weeks,
+			rent_price_1_month,
+			rent_price_3_months,
+			status,
+			is_available,
+			COALESCE(cover_url, '')
+	`
+
+	var book models.Book
+	err := r.db.QueryRowContext(
+		ctx,
+		query,
+		req.Title,
+		req.Description,
+		req.AuthorID,
+		req.CategoryID,
+		req.YearWritten,
+		req.PurchasePrice,
+		req.RentPrice2Weeks,
+		req.RentPrice1Month,
+		req.RentPrice3Months,
+		req.Status,
+		req.IsAvailable,
+		req.CoverURL,
+	).Scan(
+		&book.ID,
+		&book.Title,
+		&book.Description,
+		&book.AuthorID,
+		&book.CategoryID,
+		&book.YearWritten,
+		&book.PurchasePrice,
+		&book.RentPrice2Weeks,
+		&book.RentPrice1Month,
+		&book.RentPrice3Months,
+		&book.Status,
+		&book.IsAvailable,
+		&book.CoverURL,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create book: %w", err)
+	}
+
+	return r.GetByID(ctx, book.ID)
+}
+
+func (r *BookRepository) Update(ctx context.Context, id int64, req models.UpdateBookRequest) (*models.Book, error) {
+	query := `
+		UPDATE books
+		SET
+			title = $1,
+			description = $2,
+			author_id = $3,
+			category_id = $4,
+			year_written = $5,
+			purchase_price = $6,
+			rent_price_2_weeks = $7,
+			rent_price_1_month = $8,
+			rent_price_3_months = $9,
+			status = $10,
+			is_available = $11,
+			cover_url = $12
+		WHERE id = $13
+	`
+
+	result, err := r.db.ExecContext(
+		ctx,
+		query,
+		req.Title,
+		req.Description,
+		req.AuthorID,
+		req.CategoryID,
+		req.YearWritten,
+		req.PurchasePrice,
+		req.RentPrice2Weeks,
+		req.RentPrice1Month,
+		req.RentPrice3Months,
+		req.Status,
+		req.IsAvailable,
+		req.CoverURL,
+		id,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("update book: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return nil, sql.ErrNoRows
+	}
+
+	return r.GetByID(ctx, id)
+}
+
+func (r *BookRepository) Delete(ctx context.Context, id int64) error {
+	result, err := r.db.ExecContext(ctx, `DELETE FROM books WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("delete book: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *BookRepository) UpdateStatus(ctx context.Context, id int64, status string) error {
+	result, err := r.db.ExecContext(ctx, `UPDATE books SET status = $1 WHERE id = $2`, status, id)
+	if err != nil {
+		return fmt.Errorf("update book status: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *BookRepository) UpdateAvailability(ctx context.Context, id int64, isAvailable bool) error {
+	result, err := r.db.ExecContext(ctx, `UPDATE books SET is_available = $1 WHERE id = $2`, isAvailable, id)
+	if err != nil {
+		return fmt.Errorf("update book availability: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
