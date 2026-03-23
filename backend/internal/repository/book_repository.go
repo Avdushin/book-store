@@ -170,3 +170,26 @@ WHERE b.id = $1
 
 	return &b, nil
 }
+
+func (r *BookRepository) UpdateAvailabilityAndStatus(ctx context.Context, id int64, isAvailable bool, status string) error {
+	query := `
+		UPDATE books
+		SET is_available = $1, status = $2
+		WHERE id = $3
+	`
+
+	result, err := r.db.ExecContext(ctx, query, isAvailable, status, id)
+	if err != nil {
+		return fmt.Errorf("update book availability and status: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}

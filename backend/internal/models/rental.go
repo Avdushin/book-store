@@ -14,4 +14,5 @@ type Rental struct {
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
 	Status    string `json:"status"`
+	CreatedAt string `json:"created_at"`
 }

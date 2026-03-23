@@ -32,6 +32,14 @@ func NewRouter(db *sql.DB, cfg *config.Config) http.Handler {
 	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
 	authHandler := handlers.NewAuthHandler(authService)
 
+	purchaseRepo := repository.NewPurchaseRepository(db)
+	purchaseService := services.NewPurchaseService(purchaseRepo, bookRepo)
+	purchaseHandler := handlers.NewPurchaseHandler(purchaseService)
+
+	rentalRepo := repository.NewRentalRepository(db)
+	rentalService := services.NewRentalService(rentalRepo, bookRepo)
+	rentalHandler := handlers.NewRentalHandler(rentalService)
+
 	r.Get("/health", healthHandler.Health)
 	r.Handle("/covers/*", http.StripPrefix("/covers/", http.FileServer(http.Dir("./static/covers"))))
 
@@ -48,6 +56,16 @@ func NewRouter(db *sql.DB, cfg *config.Config) http.Handler {
 
 		api.Get("/books", bookHandler.List)
 		api.Get("/books/{id}", bookHandler.GetByID)
+
+		api.Group(func(private chi.Router) {
+			private.Use(appmiddleware.Auth(authService))
+
+			private.Post("/purchases", purchaseHandler.Create)
+			private.Get("/purchases/my", purchaseHandler.ListMy)
+
+			private.Post("/rentals", rentalHandler.Create)
+			private.Get("/rentals/my", rentalHandler.ListMy)
+		})
 	})
 
 	return r
