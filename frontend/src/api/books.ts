@@ -1,5 +1,12 @@
 import { api } from './client';
-import type { Book, BookListResponse, Purchase, Rental } from '../types';
+import type {
+  Author,
+  Book,
+  BookListResponse,
+  Category,
+  Purchase,
+  Rental,
+} from '../types';
 
 export async function getBooks(params?: Record<string, string | number>) {
   const { data } = await api.get<BookListResponse>('/books', { params });
@@ -22,12 +29,16 @@ export async function createRental(book_id: number, tariff: string) {
 }
 
 export async function getMyPurchases() {
-  const { data } = await api.get<{ items: Purchase[]; total: number }>('/purchases/my');
+  const { data } = await api.get<{ items: Purchase[]; total: number }>(
+    '/purchases/my',
+  );
   return data;
 }
 
 export async function getMyRentals() {
-  const { data } = await api.get<{ items: Rental[]; total: number }>('/rentals/my');
+  const { data } = await api.get<{ items: Rental[]; total: number }>(
+    '/rentals/my',
+  );
   return data;
 }
 
@@ -57,18 +68,38 @@ export async function adminDeleteBook(id: number) {
 }
 
 export async function adminUpdateBookStatus(id: number, status: string) {
-  const { data } = await api.patch<{ message: string }>(`/admin/books/${id}/status`, {
-    status,
-  });
+  const { data } = await api.patch<{ message: string }>(
+    `/admin/books/${id}/status`,
+    {
+      status,
+    },
+  );
   return data;
 }
 
-export async function adminUpdateBookAvailability(id: number, is_available: boolean) {
+export async function adminUpdateBookAvailability(
+  id: number,
+  is_available: boolean,
+) {
   const { data } = await api.patch<{ message: string }>(
     `/admin/books/${id}/availability`,
     {
       is_available,
     },
+  );
+  return data;
+}
+
+export async function getAuthors() {
+  const { data } = await api.get<{ items: Author[]; total: number }>(
+    '/authors',
+  );
+  return data;
+}
+
+export async function getCategories() {
+  const { data } = await api.get<{ items: Category[]; total: number }>(
+    '/categories',
   );
   return data;
 }

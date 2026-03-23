@@ -53,3 +53,13 @@ export type Rental = {
   status: string;
   created_at: string;
 };
+
+export type Author = {
+  id: number;
+  full_name: string;
+};
+
+export type Category = {
+  id: number;
+  name: string;
+};

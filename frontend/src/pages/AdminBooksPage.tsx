@@ -5,9 +5,11 @@ import {
   adminDeleteBook,
   adminUpdateBookAvailability,
   adminUpdateBookStatus,
+  getAuthors,
   getBooks,
+  getCategories,
 } from '../api/books';
-import type { Book } from '../types';
+import type { Author, Book, Category } from '../types';
 
 type CreateFormState = {
   title: string;
@@ -27,8 +29,8 @@ type CreateFormState = {
 const initialForm: CreateFormState = {
   title: '',
   description: '',
-  author_id: '1',
-  category_id: '1',
+  author_id: '',
+  category_id: '',
   year_written: '2024',
   purchase_price: '10',
   rent_price_2_weeks: '2',
@@ -61,22 +63,46 @@ function getStatusLabel(book: Book) {
 
 export function AdminBooksPage() {
   const [items, setItems] = useState<Book[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState<CreateFormState>(initialForm);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   async function loadBooks() {
+    const data = await getBooks({ sort_by: 'title', order: 'asc' });
+    setItems(data.items);
+  }
+
+  async function loadReferences() {
+    const [authorsData, categoriesData] = await Promise.all([
+      getAuthors(),
+      getCategories(),
+    ]);
+
+    setAuthors(authorsData.items);
+    setCategories(categoriesData.items);
+
+    setForm((prev) => ({
+      ...prev,
+      author_id: prev.author_id || String(authorsData.items[0]?.id ?? ''),
+      category_id:
+        prev.category_id || String(categoriesData.items[0]?.id ?? ''),
+    }));
+  }
+
+  async function loadAll() {
     try {
-      const data = await getBooks({ sort_by: 'title', order: 'asc' });
-      setItems(data.items);
+      setError('');
+      await Promise.all([loadBooks(), loadReferences()]);
     } catch {
-      setError('Не удалось загрузить книги');
+      setError('Не удалось загрузить данные админки');
     }
   }
 
   useEffect(() => {
-    loadBooks();
+    loadAll();
   }, []);
 
   function updateForm<K extends keyof CreateFormState>(
@@ -112,7 +138,12 @@ export function AdminBooksPage() {
       });
 
       setMessage('Книга успешно добавлена');
-      setForm(initialForm);
+      setForm((prev) => ({
+        ...initialForm,
+        author_id: prev.author_id,
+        category_id: prev.category_id,
+      }));
+
       await loadBooks();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -203,17 +234,29 @@ export function AdminBooksPage() {
             onChange={(e) => updateForm('description', e.target.value)}
           />
 
-          <input
-            placeholder='ID автора'
+          <select
             value={form.author_id}
             onChange={(e) => updateForm('author_id', e.target.value)}
-          />
+          >
+            <option value=''>Выберите автора</option>
+            {authors.map((author) => (
+              <option key={author.id} value={author.id}>
+                {author.full_name}
+              </option>
+            ))}
+          </select>
 
-          <input
-            placeholder='ID категории'
+          <select
             value={form.category_id}
             onChange={(e) => updateForm('category_id', e.target.value)}
-          />
+          >
+            <option value=''>Выберите категорию</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
 
           <input
             placeholder='Год'
